@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: logging-loki-s3
+  namespace: openshift-logging
+stringData:
+  bucketnames: loki-rosa1
+  region: us-east-2
+  endpoint: https://s3.us-east-2.amazonaws.com
+##  role_arn: arn:aws:iam::026082136327:role/loki

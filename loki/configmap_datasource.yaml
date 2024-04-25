@@ -1,0 +1,110 @@
+# Defining the ${GATEWAY_ADDRESS}
+
+# From your service listing in the openshift-logging namespace, the LokiStack gateway service is identified as logging-loki-gateway-http with ports 8080, 8081, and 8083 exposed. Assuming port 8080 is the relevant port for accessing the Loki API, the gateway address can be defined as follows:
+# oc get svc -n openshift-logging 
+#     ${GATEWAY_ADDRESS}: logging-loki-gateway-http.openshift-logging.svc:8080
+# 
+
+# Defining the ${GATEWAY_SERVICE_CA}
+
+# The relevant ConfigMap or Secret should contain the CA certificate needed to establish a secure connection to the LokiStack gateway. Based on the output:
+# oc get cm -n openshift-logging 
+# ConfigMap for CA: You listed several ConfigMaps  including those labeled as *-ca-bundle. The logging-loki-gateway-ca-bundle ConfigMap in openshift-logging seems the most likely candidate to contain the CA certificate.
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-datasources
+  namespace: openshift-logging
+data:
+  loki.yaml: |
+    apiVersion: 1
+    datasources:
+      - name: Loki (Application)
+        isDefault: true
+        type: loki
+        access: proxy
+        url: https://logging-loki-gateway-http.openshift-logging.svc:8080/api/logs/v1/application/
+        jsonData:
+          tlsAuthWithCACert: true
+        secureJsonData:
+          tlsCACert: |
+            -----BEGIN CERTIFICATE-----
+            MIIDUTCCAjmgAwIBAgIIYkRFjoTJj1swDQYJKoZIhvcNAQELBQAwNjE0MDIGA1UE
+            Awwrb3BlbnNoaWZ0LXNlcnZpY2Utc2VydmluZy1zaWduZXJAMTcxMzc2MjQ5NzAe
+            Fw0yNDA0MjIwNTA4MTZaFw0yNjA2MjEwNTA4MTdaMDYxNDAyBgNVBAMMK29wZW5z
+            aGlmdC1zZXJ2aWNlLXNlcnZpbmctc2lnbmVyQDE3MTM3NjI0OTcwggEiMA0GCSqG
+            SIb3DQEBAQUAA4IBDwAwggEKAoIBAQCRc38rVULrk5OVgH2zjGc378qWjtfe4Cc3
+            696w7iW2plI8IyZUgld4vqmnwPOqbRi/Cw9KZCRqdbLLBcQecWaJ2H6wg/mf0Rgl
+            zl7amSE/3qPSVZcbAHRg23qnIVAxnpW/FJWCrFFtM28Gfw+tuRLyjx8zly0uppI6
+            qooH6UnJC70wmH0+F5KccfYdBSdSiReWqvJRuZPGo1NLp2zcAmxbYGNRKkHN3xp6
+            TmMwzTcPjG/yL3v6kHB/z1ajAa/2qek4Ilqc/pYi3tpCyv0TW4S6Zpg+uvHu8khu
+            V/b+VfFQHgg3ll5WVsUVnERKmwZ9Av0dN4Mj8L1FpV9GMEADEhlxAgMBAAGjYzBh
+            MA4GA1UdDwEB/wQEAwICpDAPBgNVHRMBAf8EBTADAQH/MB0GA1UdDgQWBBQOrG9k
+            tSETEQdknuFZyYE/tRaq+zAfBgNVHSMEGDAWgBQOrG9ktSETEQdknuFZyYE/tRaq
+            +zANBgkqhkiG9w0BAQsFAAOCAQEAR6PED2P9q8yp2Ir4ovpa9lMHWNYiPj8efNxY
+            JHY/p5Wgx6dEXjZskIu18Mu3SoXCGNpRL/NjBOGGaTixb2RYUqcJLJMjO/X3Eg9W
+            ZbBMA/2EKIERSVKK7nEvDdet6BIgdca1OjEmrQnejMftUhauAlPzft3I9fzwZN6v
+            Qa8ABLq2LTJqXjARHjIp+1SdJmX5LDnWNLfqmExuFAKU5ZxhApTuieKSMUWl2JXo
+            4MQBx5vY+ksvPG3dQUT9nw5aX4hE90DenMr/SuDNly3A20dutzOvkj8cCzQWvJGG
+            je2l3dDFsyYJS+8WgQ9Uh6onHpFPEAE2Kek8yZPFgYwDZz/gCQ==
+            -----END CERTIFICATE-----
+      - name: Loki (Infrastructure)
+        type: loki
+        access: proxy
+        url: https://logging-loki-gateway-http.openshift-logging.svc:8080/api/logs/v1/infrastructure/
+        jsonData:
+          tlsAuthWithCACert: true
+        secureJsonData:
+          tlsCACert: |
+            -----BEGIN CERTIFICATE-----
+            MIIDUTCCAjmgAwIBAgIIYkRFjoTJj1swDQYJKoZIhvcNAQELBQAwNjE0MDIGA1UE
+            Awwrb3BlbnNoaWZ0LXNlcnZpY2Utc2VydmluZy1zaWduZXJAMTcxMzc2MjQ5NzAe
+            Fw0yNDA0MjIwNTA4MTZaFw0yNjA2MjEwNTA4MTdaMDYxNDAyBgNVBAMMK29wZW5z
+            aGlmdC1zZXJ2aWNlLXNlcnZpbmctc2lnbmVyQDE3MTM3NjI0OTcwggEiMA0GCSqG
+            SIb3DQEBAQUAA4IBDwAwggEKAoIBAQCRc38rVULrk5OVgH2zjGc378qWjtfe4Cc3
+            696w7iW2plI8IyZUgld4vqmnwPOqbRi/Cw9KZCRqdbLLBcQecWaJ2H6wg/mf0Rgl
+            zl7amSE/3qPSVZcbAHRg23qnIVAxnpW/FJWCrFFtM28Gfw+tuRLyjx8zly0uppI6
+            qooH6UnJC70wmH0+F5KccfYdBSdSiReWqvJRuZPGo1NLp2zcAmxbYGNRKkHN3xp6
+            TmMwzTcPjG/yL3v6kHB/z1ajAa/2qek4Ilqc/pYi3tpCyv0TW4S6Zpg+uvHu8khu
+            V/b+VfFQHgg3ll5WVsUVnERKmwZ9Av0dN4Mj8L1FpV9GMEADEhlxAgMBAAGjYzBh
+            MA4GA1UdDwEB/wQEAwICpDAPBgNVHRMBAf8EBTADAQH/MB0GA1UdDgQWBBQOrG9k
+            tSETEQdknuFZyYE/tRaq+zAfBgNVHSMEGDAWgBQOrG9ktSETEQdknuFZyYE/tRaq
+            +zANBgkqhkiG9w0BAQsFAAOCAQEAR6PED2P9q8yp2Ir4ovpa9lMHWNYiPj8efNxY
+            JHY/p5Wgx6dEXjZskIu18Mu3SoXCGNpRL/NjBOGGaTixb2RYUqcJLJMjO/X3Eg9W
+            ZbBMA/2EKIERSVKK7nEvDdet6BIgdca1OjEmrQnejMftUhauAlPzft3I9fzwZN6v
+            Qa8ABLq2LTJqXjARHjIp+1SdJmX5LDnWNLfqmExuFAKU5ZxhApTuieKSMUWl2JXo
+            4MQBx5vY+ksvPG3dQUT9nw5aX4hE90DenMr/SuDNly3A20dutzOvkj8cCzQWvJGG
+            je2l3dDFsyYJS+8WgQ9Uh6onHpFPEAE2Kek8yZPFgYwDZz/gCQ==
+            -----END CERTIFICATE-----
+
+      - name: Loki (Audit)
+        type: loki
+        access: proxy
+        url: https://logging-loki-gateway-http.openshift-logging.svc:8080/api/logs/v1/audit/
+        jsonData:
+          tlsAuthWithCACert: true
+        secureJsonData:
+          tlsCACert: |
+            -----BEGIN CERTIFICATE-----
+            MIIDUTCCAjmgAwIBAgIIYkRFjoTJj1swDQYJKoZIhvcNAQELBQAwNjE0MDIGA1UE
+            Awwrb3BlbnNoaWZ0LXNlcnZpY2Utc2VydmluZy1zaWduZXJAMTcxMzc2MjQ5NzAe
+            Fw0yNDA0MjIwNTA4MTZaFw0yNjA2MjEwNTA4MTdaMDYxNDAyBgNVBAMMK29wZW5z
+            aGlmdC1zZXJ2aWNlLXNlcnZpbmctc2lnbmVyQDE3MTM3NjI0OTcwggEiMA0GCSqG
+            SIb3DQEBAQUAA4IBDwAwggEKAoIBAQCRc38rVULrk5OVgH2zjGc378qWjtfe4Cc3
+            696w7iW2plI8IyZUgld4vqmnwPOqbRi/Cw9KZCRqdbLLBcQecWaJ2H6wg/mf0Rgl
+            zl7amSE/3qPSVZcbAHRg23qnIVAxnpW/FJWCrFFtM28Gfw+tuRLyjx8zly0uppI6
+            qooH6UnJC70wmH0+F5KccfYdBSdSiReWqvJRuZPGo1NLp2zcAmxbYGNRKkHN3xp6
+            TmMwzTcPjG/yL3v6kHB/z1ajAa/2qek4Ilqc/pYi3tpCyv0TW4S6Zpg+uvHu8khu
+            V/b+VfFQHgg3ll5WVsUVnERKmwZ9Av0dN4Mj8L1FpV9GMEADEhlxAgMBAAGjYzBh
+            MA4GA1UdDwEB/wQEAwICpDAPBgNVHRMBAf8EBTADAQH/MB0GA1UdDgQWBBQOrG9k
+            tSETEQdknuFZyYE/tRaq+zAfBgNVHSMEGDAWgBQOrG9ktSETEQdknuFZyYE/tRaq
+            +zANBgkqhkiG9w0BAQsFAAOCAQEAR6PED2P9q8yp2Ir4ovpa9lMHWNYiPj8efNxY
+            JHY/p5Wgx6dEXjZskIu18Mu3SoXCGNpRL/NjBOGGaTixb2RYUqcJLJMjO/X3Eg9W
+            ZbBMA/2EKIERSVKK7nEvDdet6BIgdca1OjEmrQnejMftUhauAlPzft3I9fzwZN6v
+            Qa8ABLq2LTJqXjARHjIp+1SdJmX5LDnWNLfqmExuFAKU5ZxhApTuieKSMUWl2JXo
+            4MQBx5vY+ksvPG3dQUT9nw5aX4hE90DenMr/SuDNly3A20dutzOvkj8cCzQWvJGG
+            je2l3dDFsyYJS+8WgQ9Uh6onHpFPEAE2Kek8yZPFgYwDZz/gCQ==
+            -----END CERTIFICATE-----
+
+

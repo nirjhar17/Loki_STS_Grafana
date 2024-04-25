@@ -1,0 +1,320 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  annotations:
+    serviceaccounts.openshift.io/oauth-redirectreference.grafana: '{"kind":"OAuthRedirectReference","apiVersion":"v1","reference":{"kind":"Route","name":"grafana"}}'
+  name: grafana
+  namespace: openshift-logging
+
+#----------
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: logging-grafana-auth-delegator
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:auth-delegator
+subjects:
+- kind: ServiceAccount
+  name: grafana
+  namespace: openshift-logging
+###---
+
+apiVersion: v1
+data:
+  config.ini: |
+    [analytics]
+    check_for_updates = false
+    reporting_enabled = false
+    [auth]
+    disable_login_form = true
+    disable_signout_menu = true
+    [auth.basic]
+    enabled = false
+    [auth.proxy]
+    auto_sign_up = true
+    enabled = true
+    header_name = X-Forwarded-User
+    [paths]
+    data = /var/lib/grafana
+    logs = /var/lib/grafana/logs
+    plugins = /var/lib/grafana/plugins
+    provisioning = /etc/grafana/provisioning
+    [security]
+    admin_user = system:does-not-exist
+    cookie_secure = true
+    [users]
+    viewers_can_edit = true
+    default_theme = light
+    [log]
+    mode = console
+kind: ConfigMap
+metadata:
+  name: grafana-config
+  namespace: openshift-logging
+###---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-datasources
+  namespace: openshift-logging
+data:
+  loki.yaml: |
+    apiVersion: 1
+    datasources:
+      - name: Loki (Application)
+        isDefault: true
+        type: loki
+        access: proxy
+        url: https://logging-loki-gateway-http.openshift-logging.svc:8080/api/logs/v1/application/
+        jsonData:
+          tlsAuthWithCACert: true
+        secureJsonData:
+          tlsCACert: |
+            -----BEGIN CERTIFICATE-----
+            MIIDUTCCAjmgAwIBAgIIYkRFjoTJj1swDQYJKoZIhvcNAQELBQAwNjE0MDIGA1UE
+            Awwrb3BlbnNoaWZ0LXNlcnZpY2Utc2VydmluZy1zaWduZXJAMTcxMzc2MjQ5NzAe
+            Fw0yNDA0MjIwNTA4MTZaFw0yNjA2MjEwNTA4MTdaMDYxNDAyBgNVBAMMK29wZW5z
+            aGlmdC1zZXJ2aWNlLXNlcnZpbmctc2lnbmVyQDE3MTM3NjI0OTcwggEiMA0GCSqG
+            SIb3DQEBAQUAA4IBDwAwggEKAoIBAQCRc38rVULrk5OVgH2zjGc378qWjtfe4Cc3
+            696w7iW2plI8IyZUgld4vqmnwPOqbRi/Cw9KZCRqdbLLBcQecWaJ2H6wg/mf0Rgl
+            zl7amSE/3qPSVZcbAHRg23qnIVAxnpW/FJWCrFFtM28Gfw+tuRLyjx8zly0uppI6
+            qooH6UnJC70wmH0+F5KccfYdBSdSiReWqvJRuZPGo1NLp2zcAmxbYGNRKkHN3xp6
+            TmMwzTcPjG/yL3v6kHB/z1ajAa/2qek4Ilqc/pYi3tpCyv0TW4S6Zpg+uvHu8khu
+            V/b+VfFQHgg3ll5WVsUVnERKmwZ9Av0dN4Mj8L1FpV9GMEADEhlxAgMBAAGjYzBh
+            MA4GA1UdDwEB/wQEAwICpDAPBgNVHRMBAf8EBTADAQH/MB0GA1UdDgQWBBQOrG9k
+            tSETEQdknuFZyYE/tRaq+zAfBgNVHSMEGDAWgBQOrG9ktSETEQdknuFZyYE/tRaq
+            +zANBgkqhkiG9w0BAQsFAAOCAQEAR6PED2P9q8yp2Ir4ovpa9lMHWNYiPj8efNxY
+            JHY/p5Wgx6dEXjZskIu18Mu3SoXCGNpRL/NjBOGGaTixb2RYUqcJLJMjO/X3Eg9W
+            ZbBMA/2EKIERSVKK7nEvDdet6BIgdca1OjEmrQnejMftUhauAlPzft3I9fzwZN6v
+            Qa8ABLq2LTJqXjARHjIp+1SdJmX5LDnWNLfqmExuFAKU5ZxhApTuieKSMUWl2JXo
+            4MQBx5vY+ksvPG3dQUT9nw5aX4hE90DenMr/SuDNly3A20dutzOvkj8cCzQWvJGG
+            je2l3dDFsyYJS+8WgQ9Uh6onHpFPEAE2Kek8yZPFgYwDZz/gCQ==
+            -----END CERTIFICATE-----
+      - name: Loki (Infrastructure)
+        type: loki
+        access: proxy
+        url: https://logging-loki-gateway-http.openshift-logging.svc:8080/api/logs/v1/infrastructure/
+        jsonData:
+          tlsAuthWithCACert: true
+        secureJsonData:
+          tlsCACert: |
+            -----BEGIN CERTIFICATE-----
+            MIIDUTCCAjmgAwIBAgIIYkRFjoTJj1swDQYJKoZIhvcNAQELBQAwNjE0MDIGA1UE
+            Awwrb3BlbnNoaWZ0LXNlcnZpY2Utc2VydmluZy1zaWduZXJAMTcxMzc2MjQ5NzAe
+            Fw0yNDA0MjIwNTA4MTZaFw0yNjA2MjEwNTA4MTdaMDYxNDAyBgNVBAMMK29wZW5z
+            aGlmdC1zZXJ2aWNlLXNlcnZpbmctc2lnbmVyQDE3MTM3NjI0OTcwggEiMA0GCSqG
+            SIb3DQEBAQUAA4IBDwAwggEKAoIBAQCRc38rVULrk5OVgH2zjGc378qWjtfe4Cc3
+            696w7iW2plI8IyZUgld4vqmnwPOqbRi/Cw9KZCRqdbLLBcQecWaJ2H6wg/mf0Rgl
+            zl7amSE/3qPSVZcbAHRg23qnIVAxnpW/FJWCrFFtM28Gfw+tuRLyjx8zly0uppI6
+            qooH6UnJC70wmH0+F5KccfYdBSdSiReWqvJRuZPGo1NLp2zcAmxbYGNRKkHN3xp6
+            TmMwzTcPjG/yL3v6kHB/z1ajAa/2qek4Ilqc/pYi3tpCyv0TW4S6Zpg+uvHu8khu
+            V/b+VfFQHgg3ll5WVsUVnERKmwZ9Av0dN4Mj8L1FpV9GMEADEhlxAgMBAAGjYzBh
+            MA4GA1UdDwEB/wQEAwICpDAPBgNVHRMBAf8EBTADAQH/MB0GA1UdDgQWBBQOrG9k
+            tSETEQdknuFZyYE/tRaq+zAfBgNVHSMEGDAWgBQOrG9ktSETEQdknuFZyYE/tRaq
+            +zANBgkqhkiG9w0BAQsFAAOCAQEAR6PED2P9q8yp2Ir4ovpa9lMHWNYiPj8efNxY
+            JHY/p5Wgx6dEXjZskIu18Mu3SoXCGNpRL/NjBOGGaTixb2RYUqcJLJMjO/X3Eg9W
+            ZbBMA/2EKIERSVKK7nEvDdet6BIgdca1OjEmrQnejMftUhauAlPzft3I9fzwZN6v
+            Qa8ABLq2LTJqXjARHjIp+1SdJmX5LDnWNLfqmExuFAKU5ZxhApTuieKSMUWl2JXo
+            4MQBx5vY+ksvPG3dQUT9nw5aX4hE90DenMr/SuDNly3A20dutzOvkj8cCzQWvJGG
+            je2l3dDFsyYJS+8WgQ9Uh6onHpFPEAE2Kek8yZPFgYwDZz/gCQ==
+            -----END CERTIFICATE-----
+
+      - name: Loki (Audit)
+        type: loki
+        access: proxy
+        url: https://logging-loki-gateway-http.openshift-logging.svc:8080/api/logs/v1/audit/
+        jsonData:
+          tlsAuthWithCACert: true
+        secureJsonData:
+          tlsCACert: |
+            -----BEGIN CERTIFICATE-----
+            MIIDUTCCAjmgAwIBAgIIYkRFjoTJj1swDQYJKoZIhvcNAQELBQAwNjE0MDIGA1UE
+            Awwrb3BlbnNoaWZ0LXNlcnZpY2Utc2VydmluZy1zaWduZXJAMTcxMzc2MjQ5NzAe
+            Fw0yNDA0MjIwNTA4MTZaFw0yNjA2MjEwNTA4MTdaMDYxNDAyBgNVBAMMK29wZW5z
+            aGlmdC1zZXJ2aWNlLXNlcnZpbmctc2lnbmVyQDE3MTM3NjI0OTcwggEiMA0GCSqG
+            SIb3DQEBAQUAA4IBDwAwggEKAoIBAQCRc38rVULrk5OVgH2zjGc378qWjtfe4Cc3
+            696w7iW2plI8IyZUgld4vqmnwPOqbRi/Cw9KZCRqdbLLBcQecWaJ2H6wg/mf0Rgl
+            zl7amSE/3qPSVZcbAHRg23qnIVAxnpW/FJWCrFFtM28Gfw+tuRLyjx8zly0uppI6
+            qooH6UnJC70wmH0+F5KccfYdBSdSiReWqvJRuZPGo1NLp2zcAmxbYGNRKkHN3xp6
+            TmMwzTcPjG/yL3v6kHB/z1ajAa/2qek4Ilqc/pYi3tpCyv0TW4S6Zpg+uvHu8khu
+            V/b+VfFQHgg3ll5WVsUVnERKmwZ9Av0dN4Mj8L1FpV9GMEADEhlxAgMBAAGjYzBh
+            MA4GA1UdDwEB/wQEAwICpDAPBgNVHRMBAf8EBTADAQH/MB0GA1UdDgQWBBQOrG9k
+            tSETEQdknuFZyYE/tRaq+zAfBgNVHSMEGDAWgBQOrG9ktSETEQdknuFZyYE/tRaq
+            +zANBgkqhkiG9w0BAQsFAAOCAQEAR6PED2P9q8yp2Ir4ovpa9lMHWNYiPj8efNxY
+            JHY/p5Wgx6dEXjZskIu18Mu3SoXCGNpRL/NjBOGGaTixb2RYUqcJLJMjO/X3Eg9W
+            ZbBMA/2EKIERSVKK7nEvDdet6BIgdca1OjEmrQnejMftUhauAlPzft3I9fzwZN6v
+            Qa8ABLq2LTJqXjARHjIp+1SdJmX5LDnWNLfqmExuFAKU5ZxhApTuieKSMUWl2JXo
+            4MQBx5vY+ksvPG3dQUT9nw5aX4hE90DenMr/SuDNly3A20dutzOvkj8cCzQWvJGG
+            je2l3dDFsyYJS+8WgQ9Uh6onHpFPEAE2Kek8yZPFgYwDZz/gCQ==
+            -----END CERTIFICATE-----
+
+###------------------------
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    service.alpha.openshift.io/serving-cert-secret-name: grafana-tls
+  labels:
+    app: grafana
+  name: grafana
+  namespace: openshift-logging
+spec:
+  ports:
+  - name: https
+    port: 8443
+    protocol: TCP
+    targetPort: https
+  - name: http-grafana
+    port: 3000
+    protocol: TCP
+    targetPort: http-grafana
+  selector:
+    app: grafana
+  sessionAffinity: None
+  type: ClusterIP
+
+##-----------------------------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: grafana
+  name: grafana
+  namespace: openshift-logging
+spec:
+  selector:
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      containers:
+      - args:
+        - -config=/etc/grafana/config.ini
+        env:
+        - name: GATEWAY_SERVICE_CA
+          valueFrom:
+            configMapKeyRef:
+              key: service-ca.crt
+              name: openshift-service-ca.crt
+        - name: GATEWAY_ADDRESS
+          value: logging-loki-gateway-http.openshift-logging.svc:8080
+        - name: GF_SECURITY_ADMIN_USER
+          value: cluster-admin
+        image: docker.io/grafana/grafana:8.5.27
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          successThreshold: 1
+          tcpSocket:
+            port: 3000
+          timeoutSeconds: 1
+        name: grafana
+        ports:
+        - containerPort: 3000
+          name: http-grafana
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /robots.txt
+            port: 3000
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 30
+          successThreshold: 1
+          timeoutSeconds: 2
+        resources:
+          requests:
+            cpu: 250m
+            memory: 256Mi
+        volumeMounts:
+        - mountPath: /etc/grafana
+          name: grafana-config
+        - mountPath: /var/lib/grafana
+          name: grafana
+        - mountPath: /etc/grafana/provisioning/datasources
+          name: grafana-datasources
+      - args:
+        - -provider=openshift
+        - -https-address=:8443
+        - -http-address=
+        - -upstream=http://localhost:3000
+        - -tls-cert=/etc/tls/private/tls.crt
+        - -tls-key=/etc/tls/private/tls.key
+        - -client-id=system:serviceaccount:openshift-logging:grafana
+        - -client-secret-file=/var/run/secrets/kubernetes.io/serviceaccount/token
+        - -cookie-secret=ZXhhbXBsZS1jb29raWUtc2VjcmV0enp6
+        - -cookie-expire=24h
+        - -skip-provider-button
+        - -scope=user:info user:check-access user:list-projects
+        - -pass-access-token
+        - -pass-basic-auth=false
+        env:
+        - name: HTTP_PROXY
+        - name: HTTPS_PROXY
+        - name: NO_PROXY
+        image: quay.io/openshift/origin-oauth-proxy:4.10
+        imagePullPolicy: IfNotPresent
+        name: grafana-proxy
+        ports:
+        - containerPort: 8443
+          name: https
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /oauth/healthz
+            port: https
+            scheme: HTTPS
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        resources:
+          requests:
+            cpu: 1m
+            memory: 20Mi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /etc/tls/private
+          name: secret-grafana-tls
+      serviceAccountName: grafana
+      volumes:
+      - configMap:
+          name: grafana-config
+        name: grafana-config
+      - name: secret-grafana-tls
+        secret:
+          defaultMode: 420
+          secretName: grafana-tls
+      - configMap:
+          name: grafana-datasources
+        name: grafana-datasources
+      - emptyDir: {}
+        name: grafana
+##----------------------------
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: grafana
+  namespace: openshift-logging
+spec:
+  port:
+    targetPort: https
+  tls:
+    insecureEdgeTerminationPolicy: Redirect
+    termination: reencrypt
+  to:
+    kind: Service
+    name: grafana
+    weight: 100
+  wildcardPolicy: None
