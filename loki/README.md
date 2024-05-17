@@ -1,4 +1,8 @@
 # Loki-Grafana Integration with AWS STS
+Documentation
+1. https://github.com/openshift/enhancements/blob/master/enhancements/cluster-logging/loki-tokenized-auth-enablement.md
+2. https://loki-operator.dev/docs/short_lived_tokens_authentication.md/
+   
 ### Steps
  1. Create the S3 object storage on AWS.
  2. Create the secret for s3 bucket to use it on the loki
@@ -9,7 +13,7 @@
  ```
  Create the role and apply the trust_policies.yaml and AllowFulls3access to the role"
  ```
- 4. Notice the role arn from previous step and install the Loki operator and provide the role arn
+ 4. Notice the role arn from the previous step install the Loki operator, and provide the role arn
  ```
  oc get pods -w -n openshift-operators-redhat
  ```
@@ -17,10 +21,24 @@
  ```
  oc get pods -w -n openshift-logging
  ```
+-> Add the secret logging-loki-managed-credentials for the versions below OCP4.14.20 manually and for later versions it creates automatically.
+```
+oc create secret generic logging-loki-managed-credentials  \
+    --from-literal=role_arn="${ROLE_ARN}" \
+    --from-literal=bucketnames="${LOKI_BUCKET_NAME}" \
+    --from-literal=region="${AWS_DEFAULT_REGION}"
+```
  6. configure loki CR
  ```
  oc create -f loki.yaml
  ```
+Note : if there is a warning for storage schema, use the most recent version
+```
+  storage:
+    schemas:
+      - effectiveDate: '2023-10-15'
+        version: v13
+```
  7. configure Clusterlogging CR
  ```
  oc create -f logging.yaml
