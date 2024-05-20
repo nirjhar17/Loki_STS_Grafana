@@ -48,7 +48,11 @@ Note : if there is a warning for storage schema, use the most recent version
  oc get pods -n openshift-logging
  ```
  9. Verify the logs from Console (Refresh Webconsole --> Observe --> Logs)
-10. Once all the Loki pods are up, there are two ways to configure Grafana:
+ 10. To enable the audit logs, configure the clusterlogforwarder object in openshift-logging namespace from the logging operator
+ ```
+ oc create -f clf.yaml
+ ```
+12. Once all the Loki pods are up, there are two ways to configure Grafana:
 
     a. Use deployment:
         - a.1 Create service account:
