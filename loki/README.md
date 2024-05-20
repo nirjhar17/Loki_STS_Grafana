@@ -52,7 +52,7 @@ Note : if there is a warning for storage schema, use the most recent version
  ```
  oc create -f clf.yaml
  ```
-12. Once all the Loki pods are up, there are two ways to configure Grafana:
+11. Once all the Loki pods are up, there are two ways to configure Grafana:
 
     a. Use deployment:
         - a.1 Create service account:
