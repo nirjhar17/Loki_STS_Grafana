@@ -3,6 +3,7 @@ Documentation
 1. https://github.com/openshift/enhancements/blob/master/enhancements/cluster-logging/loki-tokenized-auth-enablement.md
 2. https://loki-operator.dev/docs/short_lived_tokens_authentication.md/
 3. https://docs.openshift.com/container-platform/4.15/observability/logging/log_storage/installing-log-storage.html#logging-loki-storage_installing-log-storage
+4. https://community.grafana.com/t/problems-retrieving-loki-logs-in-grafana-on-openshift/89257/18
    
 ### Steps
  1. Create the S3 object storage on AWS.
