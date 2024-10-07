@@ -416,3 +416,20 @@ spec:
     name: grafana
     weight: 100
   wildcardPolicy: None
+
+
+
+Note :- If the Grfana dashboard is not editable, make the below changes
+role_attribute_path = contains(groups[*], 'system:cluster-admins') && 'GrafanaAdmin' || contains(groups[*], 'cluster-admin') && 'GrafanaAdmin'  || contains(groups[*], 'dedicated-admin') && 'GrafanaAdmin' || 'Viewer'
+Then add the user role
+[users]
+
+    viewers_can_edit = true
+
+    editors_can_admin = true
+
+    default_theme = light
+
+    auto_assign_org_role = Admin
+
+
