@@ -1,4 +1,4 @@
-## Create the service account 
+## reate the service account 
 ```
 oc create sa log-forwarder-sa
 ```
