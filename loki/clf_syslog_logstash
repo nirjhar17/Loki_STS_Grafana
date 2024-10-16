@@ -1,14 +1,14 @@
-- Create the service account 
+## Create the service account 
 ```
 oc create sa log-forwarder-sa
 ```
-- Create the rolebindings for this service account in the openshift-logging namespace
+## Create the rolebindings for this service account in the openshift-logging namespace
 ```
 oc create clusterrolebinding collect-app-logs \     --clusterrole=collect-application-logs --serviceaccount=openshift-logging:log-forwarder-sa 
 oc create clusterrolebinding collect-audit-logs \     --clusterrole=collect-audit-logs --serviceaccount=openshift-logging:log-forwarder-sa 
 oc create clusterrolebinding collect-infra-logs \     --clusterrole=collect-infrastructure-logs --serviceaccount=openshift-logging:log-forwarder-sa
 ```
-- Create the clusterlogforwarder for the Syslog
+## Create the clusterlogforwarder for the Syslog
 ```
 apiVersion: logging.openshift.io/v1
 kind: ClusterLogForwarder
@@ -38,6 +38,6 @@ spec:
        clusterName: prod-iti-exam
      parse: json
 ```
-Note:- 
+## Note:- 
 - if logs reporting garbage remove payloadKey: message from the yaml
 - create second clf for the default instance of loki
