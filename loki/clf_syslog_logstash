@@ -1,0 +1,43 @@
+- Create the service account 
+```
+oc create sa log-forwarder-sa
+```
+- Create the rolebindings for this service account in the openshift-logging namespace
+```
+oc create clusterrolebinding collect-app-logs \     --clusterrole=collect-application-logs --serviceaccount=openshift-logging:log-forwarder-sa 
+oc create clusterrolebinding collect-audit-logs \     --clusterrole=collect-audit-logs --serviceaccount=openshift-logging:log-forwarder-sa 
+oc create clusterrolebinding collect-infra-logs \     --clusterrole=collect-infrastructure-logs --serviceaccount=openshift-logging:log-forwarder-sa
+```
+- Create the clusterlogforwarder for the Syslog
+```
+apiVersion: logging.openshift.io/v1
+kind: ClusterLogForwarder
+metadata:
+  name: rosa-logs
+  namespace: openshift-logging
+spec:
+  serviceAccountName: log-forwarder-sa
+  outputs:
+   - name: rsyslog-rosa
+     type: syslog
+     syslog:
+       facility: local7    # check with syslog team
+       rfc: RFC5424
+       severity: informational
+     url: 'tcp://10.150.30.132:514'
+  pipelines:
+   - name: syslog-rosa
+     inputRefs:
+     - audit
+     - application
+     - infrastructure
+     outputRefs:
+     - rsyslog-rosa
+     labels:
+       clusterId: b43ae472-ca6e-40ed-877f-286dee771ac2
+       clusterName: prod-iti-exam
+     parse: json
+```
+Note:- 
+- if logs reporting garbage remove payloadKey: message from the yaml
+- create second clf for the default instance of loki
