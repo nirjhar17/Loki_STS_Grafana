@@ -4,6 +4,8 @@ Documentation
 2. https://loki-operator.dev/docs/short_lived_tokens_authentication.md/
 3. https://docs.openshift.com/container-platform/4.15/observability/logging/log_storage/installing-log-storage.html#logging-loki-storage_installing-log-storage
 4. https://community.grafana.com/t/problems-retrieving-loki-logs-in-grafana-on-openshift/89257/18
+5. Logging 6.x
+   https://docs.redhat.com/en/documentation/openshift_container_platform/4.17/html-single/logging/index#quick-start-opentelemetry_logging-6x-6.1
    
 ### Steps
  1. Create the S3 object storage on AWS.
