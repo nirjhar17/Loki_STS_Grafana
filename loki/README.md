@@ -71,6 +71,11 @@ Note In logging 6.x there is no logging cr is present in the operator. FOllow th
   [+] https://access.redhat.com/articles/7089860
   [+] https://docs.openshift.com/container-platform/4.16/observability/logging/logging-6.1/log6x-about-6.1.html
 
+  a. Install the Cluster Observability Operator:
+ ```
+ oc create -f clf_latest_6.x.yaml
+ ```
+  Above steps will create the both collector, logforwarder and connect it with loki stack.
  9. Verify the logs from Console (Refresh Webconsole --> Observe --> Logs)
  10. To enable the audit logs, configure the clusterlogforwarder object in openshift-logging namespace from the logging operator
  ```
