@@ -67,10 +67,11 @@ Note : if there is a warning for storage schema, use the most recent version
  ```
  oc get pods -n openshift-logging
  ```
-Note In logging 6.x there is no logging cr is present in the operator. FOllow the below kcs and latest clf yaml
+Note: In logging 6.x, there is no logging cr is present in the operator. Follow the below kcs and latest clf yaml
+
+
   a. https://access.redhat.com/articles/7089860
   b. https://docs.openshift.com/container-platform/4.16/observability/logging/logging-6.1/log6x-about-6.1.html
-
   c. Install the Cluster Observability Operator:
  ```
  oc create -f clf_latest_6.x.yaml
