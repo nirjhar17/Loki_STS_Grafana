@@ -68,14 +68,16 @@ Note : if there is a warning for storage schema, use the most recent version
  oc get pods -n openshift-logging
  ```
 Note In logging 6.x there is no logging cr is present in the operator. FOllow the below kcs and latest clf yaml
-  [+] https://access.redhat.com/articles/7089860
-  [+] https://docs.openshift.com/container-platform/4.16/observability/logging/logging-6.1/log6x-about-6.1.html
+  a. https://access.redhat.com/articles/7089860
+  b. https://docs.openshift.com/container-platform/4.16/observability/logging/logging-6.1/log6x-about-6.1.html
 
-  a. Install the Cluster Observability Operator:
+  c. Install the Cluster Observability Operator:
  ```
  oc create -f clf_latest_6.x.yaml
  ```
-  Above steps will create the both collector, logforwarder and connect it with loki stack.
+  The above steps will create both the collector and logforwarder and connect them with the Loki stack.
+
+
  9. Verify the logs from Console (Refresh Webconsole --> Observe --> Logs)
  10. To enable the audit logs, configure the clusterlogforwarder object in openshift-logging namespace from the logging operator
  ```
