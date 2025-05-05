@@ -67,6 +67,10 @@ Note : if there is a warning for storage schema, use the most recent version
  ```
  oc get pods -n openshift-logging
  ```
+Note In logging 6.x there is no logging cr is present in the operator. FOllow the below kcs and latest clf yaml
+  [+] https://access.redhat.com/articles/7089860
+  [+] https://docs.openshift.com/container-platform/4.16/observability/logging/logging-6.1/log6x-about-6.1.html
+
  9. Verify the logs from Console (Refresh Webconsole --> Observe --> Logs)
  10. To enable the audit logs, configure the clusterlogforwarder object in openshift-logging namespace from the logging operator
  ```
