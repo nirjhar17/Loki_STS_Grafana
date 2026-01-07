@@ -132,50 +132,89 @@ Note: In logging 6.x, there is no logging cr is present in the operator. Follow 
 
 Loki stores logs in a compressed binary format in S3, which cannot be read directly as text. To inspect and read these chunks, use the official **chunks-inspect** tool from Grafana Loki.
 
-### Tool Location
-- GitHub: [https://github.com/grafana/loki/tree/main/cmd/chunks-inspect](https://github.com/grafana/loki/tree/main/cmd/chunks-inspect)
+### About the Tool
 
-### Build the Tool
+- **Source:** This tool is part of the official Grafana Loki repository and is NOT included in this repository
+- **Location:** [https://github.com/grafana/loki/tree/main/cmd/chunks-inspect](https://github.com/grafana/loki/tree/main/cmd/chunks-inspect)
+- **Language:** Written in Go - you need to clone the repository and build it yourself
+
+### Prerequisites
+
+Before building the tool, ensure you have the following installed:
+- **Git** - to clone the repository
+- **Go (Golang)** - version 1.21 or higher recommended
+  ```bash
+  # Check if Go is installed
+  go version
+  
+  # If not installed, download from: https://go.dev/dl/
+  ```
+
+### Step 1: Clone and Build the Tool
+
+The tool needs to be cloned from the official Grafana Loki GitHub repository and compiled locally:
+
 ```bash
+# Clone only the chunks-inspect tool (sparse checkout to save space)
 git clone --depth 1 --filter=blob:none --sparse https://github.com/grafana/loki.git
 cd loki
 git sparse-checkout set cmd/chunks-inspect
+
+# Navigate to the tool directory
 cd cmd/chunks-inspect
+
+# Build the binary
 go build
+
+# Verify the binary was created
+ls -la chunks-inspect
 ```
 
-### Usage
+After building, you will have a binary file called `chunks-inspect` in the current directory.
 
-| Flag | Description |
-|------|-------------|
-| (none) | Shows chunk metadata: UserID, timestamps, labels, encoding |
-| `-b` | Print block details (offsets, checksums, compression ratios) |
-| `-l` | Print actual log lines |
-| `-s` | Store blocks to separate files for inspection |
+### Step 2: Download Loki Chunks from S3
 
-### Steps to Read Logs from S3
+Use AWS CLI to download the chunk files you want to inspect:
 
-1. **Download chunks from S3:**
 ```bash
+# List chunks in your S3 bucket
+aws s3 ls s3://your-loki-bucket/chunks/ --recursive
+
+# Download a specific chunk file
 aws s3 cp s3://your-loki-bucket/path/to/chunk ./chunk-file
+
+# Or download multiple chunks
+aws s3 cp s3://your-loki-bucket/chunks/ ./local-chunks/ --recursive
 ```
 
-2. **View chunk metadata:**
+### Step 3: Inspect the Chunks
+
+Run the `chunks-inspect` tool on the downloaded chunk files:
+
+| Command | Description |
+|---------|-------------|
+| `./chunks-inspect chunk-file` | Shows chunk metadata: UserID, timestamps, labels, encoding |
+| `./chunks-inspect -b chunk-file` | Print block details (offsets, checksums, compression ratios) |
+| `./chunks-inspect -l chunk-file` | **Print actual log lines** |
+| `./chunks-inspect -b -l chunk-file` | Print everything (blocks + log lines) |
+| `./chunks-inspect -s chunk-file` | Store blocks to separate files for inspection |
+
+### Example Usage
+
 ```bash
+# View metadata only
 ./chunks-inspect chunk-file
-```
 
-3. **View actual log lines:**
-```bash
+# View actual log lines (most common use case)
 ./chunks-inspect -l chunk-file
-```
 
-4. **View everything (blocks + lines):**
-```bash
+# View everything - blocks and log lines
 ./chunks-inspect -b -l chunk-file
 ```
 
 ### Example Output
+
+**Metadata output:**
 ```
 Chunks file: db61b4eca2a5ad68:16f89ff4164:16f8a0cfb41:1538ace0
 Metadata length: 485
@@ -191,8 +230,20 @@ Encoding: lz4
 Found 5 block(s), use -b to show block details
 ```
 
-With `-l` flag, you'll see actual log lines:
+**Log lines output (with `-l` flag):**
 ```
 TS(2020-01-09 11:10:04.644490 UTC) LINE(your actual log message here) STRUCTURED_METADATA()
+TS(2020-01-09 11:10:05.123456 UTC) LINE(another log message) STRUCTURED_METADATA()
+```
+
+### Quick Reference
+
+```bash
+# Full workflow example
+git clone --depth 1 --filter=blob:none --sparse https://github.com/grafana/loki.git
+cd loki && git sparse-checkout set cmd/chunks-inspect && cd cmd/chunks-inspect
+go build
+aws s3 cp s3://my-loki-bucket/chunks/my-chunk ./my-chunk
+./chunks-inspect -l ./my-chunk
 ```
 
