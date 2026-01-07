@@ -126,3 +126,73 @@ Note: In logging 6.x, there is no logging cr is present in the operator. Follow 
         - b.1 Follow the link for more information:
             [https://cloud.redhat.com/experts/o11y/ocp-grafana/](https://cloud.redhat.com/experts/o11y/ocp-grafana/)
 
+---
+
+## Reading Loki Chunks from S3
+
+Loki stores logs in a compressed binary format in S3, which cannot be read directly as text. To inspect and read these chunks, use the official **chunks-inspect** tool from Grafana Loki.
+
+### Tool Location
+- GitHub: [https://github.com/grafana/loki/tree/main/cmd/chunks-inspect](https://github.com/grafana/loki/tree/main/cmd/chunks-inspect)
+
+### Build the Tool
+```bash
+git clone --depth 1 --filter=blob:none --sparse https://github.com/grafana/loki.git
+cd loki
+git sparse-checkout set cmd/chunks-inspect
+cd cmd/chunks-inspect
+go build
+```
+
+### Usage
+
+| Flag | Description |
+|------|-------------|
+| (none) | Shows chunk metadata: UserID, timestamps, labels, encoding |
+| `-b` | Print block details (offsets, checksums, compression ratios) |
+| `-l` | Print actual log lines |
+| `-s` | Store blocks to separate files for inspection |
+
+### Steps to Read Logs from S3
+
+1. **Download chunks from S3:**
+```bash
+aws s3 cp s3://your-loki-bucket/path/to/chunk ./chunk-file
+```
+
+2. **View chunk metadata:**
+```bash
+./chunks-inspect chunk-file
+```
+
+3. **View actual log lines:**
+```bash
+./chunks-inspect -l chunk-file
+```
+
+4. **View everything (blocks + lines):**
+```bash
+./chunks-inspect -b -l chunk-file
+```
+
+### Example Output
+```
+Chunks file: db61b4eca2a5ad68:16f89ff4164:16f8a0cfb41:1538ace0
+Metadata length: 485
+Data length: 264737
+UserID: 29
+From: 2020-01-09 11:10:04.644000 UTC
+Through: 2020-01-09 11:25:04.193000 UTC (14m59.549s)
+Labels:
+     __name__ = logs
+     app = graphite
+     cluster = us-central1
+Encoding: lz4
+Found 5 block(s), use -b to show block details
+```
+
+With `-l` flag, you'll see actual log lines:
+```
+TS(2020-01-09 11:10:04.644490 UTC) LINE(your actual log message here) STRUCTURED_METADATA()
+```
+
